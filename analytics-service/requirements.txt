@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+motor
+pydantic
+textblob
+scikit-learn
+python-dotenv
+pymongo
