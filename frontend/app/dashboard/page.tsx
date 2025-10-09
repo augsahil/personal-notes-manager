@@ -1,19 +1,7 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import axios from "../../lib/api"; // Using configured axios instance
-
-interface Note {
-  _id: string;
-  title: string;
-  content: string;
-  analytics?: {
-    word_count: number;
-    reading_time: number;
-    sentiment: number;
-    keywords: string[];
-  };
-}
+import api from "../../lib/api";
+import NoteCard, { Note } from "../../components/NoteCard";
 
 const dummyNotes: Note[] = [
   {
@@ -50,20 +38,27 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchNotes() {
       try {
-        const res = await axios.get("/notes");
-        if (res.data && res.data.length > 0) {
-          setNotes(res.data);
-        }
-        setError("");
+        const res = await api.get("/notes");
+        setNotes(res.data);
       } catch (err) {
-        console.error("Failed to fetch notes:", err);
-        setError("Failed to load notes. Showing example notes instead.");
+        console.error(err);
+        setError("Failed to fetch notes");
       } finally {
         setIsLoading(false);
       }
     }
     fetchNotes();
   }, []);
+
+  const handleDelete = async (id: string) => {
+    await api.delete(`/notes/${id}`);
+    setNotes(notes.filter((n) => n._id !== id));
+  };
+
+  const handleTriggerAnalytics = async (id: string) => {
+    await api.post("/analytics/trigger", { note_id: id });
+    // Optionally refetch notes to get updated analytics
+  };
 
   if (isLoading) {
     return (
@@ -82,36 +77,16 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Your Notes</h2>
-      {error && <p className="text-amber-600 mb-4">{error}</p>}
-      <div className="space-y-4">
-        {notes.map((note) => (
-          <div
-            key={note._id}
-            className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              {note.title}
-            </h3>
-            <p className="text-gray-600 mb-3">{note.content}</p>
-            {note.analytics && (
-              <div className="text-sm text-gray-500 flex flex-wrap gap-4 pt-2 border-t">
-                <span>📝 {note.analytics.word_count} words</span>
-                <span>⏱️ {note.analytics.reading_time} min read</span>
-                <span>
-                  {note.analytics.sentiment > 0
-                    ? "😊"
-                    : note.analytics.sentiment < 0
-                    ? "😟"
-                    : "😐"}{" "}
-                  Sentiment: {note.analytics.sentiment.toFixed(2)}
-                </span>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+    <div className="p-8 space-y-4">
+      {error && <p className="text-red-600">{error}</p>}
+      {notes.map((note) => (
+        <NoteCard
+          key={note._id}
+          note={note}
+          onDelete={handleDelete}
+          onTriggerAnalytics={handleTriggerAnalytics}
+        />
+      ))}
     </div>
   );
 }
