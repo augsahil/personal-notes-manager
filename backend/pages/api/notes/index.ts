@@ -26,7 +26,7 @@ export default async function handler(
       try {
         await axios.post(
           `${
-            process.env.ANALYTICS_URL || "http://localhost:5000"
+            process.env.ANALYTICS_URL || "http://localhost:8000"
           }/analytics/note`,
           { note_id: result.insertedId }
         );

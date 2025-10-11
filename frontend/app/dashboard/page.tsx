@@ -83,8 +83,8 @@ export default function Dashboard() {
         <NoteCard
           key={note._id}
           note={note}
-          onDelete={handleDelete}
-          onTriggerAnalytics={handleTriggerAnalytics}
+          onDelete={() => handleDelete(note._id)}
+          onTriggerAnalytics={() => handleTriggerAnalytics(note._id)}
         />
       ))}
     </div>

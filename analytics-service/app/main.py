@@ -69,7 +69,7 @@ DB_NAME = os.getenv("MONGO_DB_NAME", "notes-micro")
 app = FastAPI(title="Notes Analytics Service")
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
-notes_coll = db["notes-coll"]
+notes_coll = db["new-coll"]
 
 class Note(BaseModel):
     title: str
@@ -146,7 +146,8 @@ async def analyze_note(req: AnalyticsRequest, background_tasks: BackgroundTasks)
         print(f"Found note: {note}")
         print("Starting analytics computation...")
         background_tasks.add_task(compute_analytics, note)
-        return {"status": "processing_started", "note_id": req.note_id}
+        # return {"status": "processing_started", "note_id": req.note_id}
+        return {"status": "processing_started"}
         
     except HTTPException as he:
         raise he
@@ -157,3 +158,7 @@ async def analyze_note(req: AnalyticsRequest, background_tasks: BackgroundTasks)
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=error_msg)
+
+@app.get("/analytics/health")
+def health():
+    return {"status": "ok"}
