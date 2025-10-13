@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../lib/api";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ export default function AuthModal({ onClose }: Props) {
     e.preventDefault();
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
-      const res = await axios.post(endpoint, { email, password });
+      const res = await api.post(endpoint, { email, password });
       localStorage.setItem("token", res.data.token);
       onClose();
       window.location.href = "/dashboard"; // redirect after login/register
