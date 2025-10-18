@@ -1,4 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { connectMongo } from "../../../lib/mongo";
+import { verifyToken } from "../../../lib/auth";
+import { ObjectId } from "mongodb";
 import axios from "axios";
 
 export default async function handler(
@@ -22,9 +25,28 @@ export default async function handler(
 
   if (req.method !== "POST") return res.status(405).end();
 
+  // Verify authentication
+  const decoded = verifyToken(req);
+  if (!decoded) {
+    return res.status(401).json({ message: "Unauthorized. Please login." });
+  }
+
+  const userId = new ObjectId(decoded.userId);
   const { note_id } = req.body;
 
   try {
+    // Verify the note belongs to the user
+    const { db } = await connectMongo();
+    const note = await db
+      .collection("new-coll")
+      .findOne({ _id: new ObjectId(note_id), userId });
+
+    if (!note) {
+      return res
+        .status(404)
+        .json({ message: "Note not found or access denied" });
+    }
+
     const resp = await axios.post(
       `${process.env.ANALYTICS_URL || "http://localhost:8000"}/analytics/note`,
       { note_id }

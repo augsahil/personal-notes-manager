@@ -1,5 +1,4 @@
 import api from "../lib/api";
-import { useRouter } from "next/router";
 import { useState } from "react";
 
 interface Props {
@@ -8,6 +7,7 @@ interface Props {
 
 export default function AuthModal({ onClose }: Props) {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -15,12 +15,19 @@ export default function AuthModal({ onClose }: Props) {
     e.preventDefault();
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
-      const res = await api.post(endpoint, { email, password });
+      const payload = isLogin ? { email, password } : { name, email, password };
+      const res = await api.post(endpoint, payload);
       localStorage.setItem("token", res.data.token);
       onClose();
       window.location.href = "/dashboard"; // redirect after login/register
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Auth failed");
+    } catch (err) {
+      let errorMessage = "Auth failed";
+      if (err && typeof err === "object" && "response" in err) {
+        const response = (err as { response?: { data?: { message?: string } } })
+          .response;
+        errorMessage = response?.data?.message || errorMessage;
+      }
+      alert(errorMessage);
     }
   };
 
@@ -38,12 +45,23 @@ export default function AuthModal({ onClose }: Props) {
           {isLogin ? "Login" : "Register"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border p-2 rounded"
+              required
+            />
+          )}
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border p-2 rounded"
+            required
           />
           <input
             type="password"
@@ -51,6 +69,7 @@ export default function AuthModal({ onClose }: Props) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border p-2 rounded"
+            required
           />
           <div className="flex justify-between items-center">
             <button
