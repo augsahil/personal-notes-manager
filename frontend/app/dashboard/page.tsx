@@ -47,7 +47,7 @@ export default function Dashboard() {
         setNotes(res.data);
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch notes");
+        setError("No notes found! Here are few sample notes:");
       } finally {
         setIsLoading(false);
       }
@@ -161,7 +161,7 @@ export default function Dashboard() {
         </form>
       )}
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-indigo-600">{error}</p>}
 
       {/* Notes List */}
       <div className="grid sm:grid-cols-2 gap-6">
