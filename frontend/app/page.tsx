@@ -2,19 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, PenLine } from "lucide-react";
+import { ArrowRight, ChevronDown, PenLine } from "lucide-react";
 import axios from "axios";
 import React, { useState } from "react";
 import AuthModal from "../components/AuthModal";
+import GoToDashboardButton from "@/components/GoToDashboardButton";
+import LearnMoreSection from "@/components/LearnMoreSection";
 
 export default function HomePage() {
   const router = useRouter();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const toggleSection = () => setOpen((s) => !s);
 
   const handleDashboardRedirect = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setShowLoginModal(true); // open login modal
+      setShowLoginModal(true);
       return;
     }
 
@@ -24,9 +29,8 @@ export default function HomePage() {
       });
       router.push("/dashboard");
     } catch {
-      // token invalid / expired
       localStorage.removeItem("token");
-      setShowLoginModal(true); // open login modal
+      setShowLoginModal(true);
     }
   };
 
@@ -62,38 +66,30 @@ export default function HomePage() {
           seamlessly with AI insights.
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+          <GoToDashboardButton />
           <button
-            // onClick={() => router.push("/dashboard")}
-            onClick={handleDashboardRedirect}
-            className="flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-md hover:shadow-lg"
+            onClick={toggleSection}
+            aria-expanded={open}
+            className="inline-flex items-center gap-2 border border-gray-500 hover:border-indigo-400 hover:text-indigo-300 px-6 py-3 rounded-full font-medium transition-all duration-300"
           >
-            Go to Dashboard
-            <ArrowRight size={18} />
+            {open ? "Hide Details" : "Learn More"}
+            <motion.span
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <ChevronDown size={18} />
+            </motion.span>
           </button>
-
-          <button
-            onClick={() =>
-              window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: "smooth",
-              })
-            }
-            className="border border-gray-500 hover:border-indigo-400 hover:text-indigo-300 px-6 py-3 rounded-full font-medium transition-all duration-300"
-          >
-            Learn More
-          </button>
-          {showLoginModal && (
-            <AuthModal onClose={() => setShowLoginModal(false)} />
-          )}
         </div>
+        {open && <LearnMoreSection isOpen={open} setOpen={setOpen} />}
       </motion.div>
 
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-6 text-sm text-gray-500"
+        className={`${open ? "" : "absolute"} bottom-6 text-sm text-gray-500`}
       >
         © {new Date().getFullYear()} Personal Notes Manager. Built with ❤️ using
         Next.js & Python.

@@ -31,8 +31,7 @@ export default async function handler(
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  // Verify authentication for all routes
-  const decoded = verifyToken(req);
+  const decoded = await verifyToken(req);
   if (!decoded) {
     return res.status(401).json({ message: "Unauthorized. Please login." });
   }
@@ -42,7 +41,6 @@ export default async function handler(
   switch (req.method) {
     case "GET":
       try {
-        // Filter notes by userId - only return the logged-in user's notes
         const notes = await db
           .collection("new-coll")
           .find({ userId })
@@ -58,7 +56,6 @@ export default async function handler(
       try {
         const { title, content } = req.body;
 
-        // Validate input
         if (!title || typeof title !== "string" || title.trim().length === 0) {
           return res.status(400).json({ message: "Title is required" });
         }
@@ -70,7 +67,6 @@ export default async function handler(
           return res.status(400).json({ message: "Content is required" });
         }
 
-        // Add userId to the note when creating it
         const result = await db.collection("new-coll").insertOne({
           userId,
           title: title.trim(),
@@ -79,7 +75,6 @@ export default async function handler(
           updatedAt: new Date(),
         });
 
-        // Trigger analytics microservice
         try {
           await axios.post(
             `${

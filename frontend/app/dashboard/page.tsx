@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import api from "../../lib/api";
 import NoteCard, { Note } from "../../components/NoteCard";
+import SignOutButton from "@/components/SignOutButton";
 
 const dummyNotes: Note[] = [
   {
@@ -39,7 +40,6 @@ export default function Dashboard() {
   const [newContent, setNewContent] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // Fetch notes
   useEffect(() => {
     async function fetchNotes() {
       try {
@@ -55,18 +55,15 @@ export default function Dashboard() {
     fetchNotes();
   }, []);
 
-  // Delete note
   const handleDelete = async (id: string) => {
     await api.delete(`/notes/${id}`);
     setNotes(notes.filter((n) => n._id !== id));
   };
 
-  // Trigger analytics
   const handleTriggerAnalytics = async (id: string) => {
     await api.post("/analytics/trigger", { note_id: id });
   };
 
-  // Create new note
   const handleCreateNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newContent.trim()) return;
@@ -123,15 +120,17 @@ export default function Dashboard() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-semibold">Your Notes</h2>
-        <button
-          onClick={() => setIsCreating(!isCreating)}
-          className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow"
-        >
-          {isCreating ? "Cancel" : "+ Create Note"}
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsCreating(!isCreating)}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg shadow"
+          >
+            {isCreating ? "Cancel" : "+ Create Note"}
+          </button>
+          <SignOutButton />
+        </div>
       </div>
 
-      {/* Create Note Form */}
       {isCreating && (
         <form
           onSubmit={handleCreateNote}
@@ -163,7 +162,6 @@ export default function Dashboard() {
 
       {error && <p className="text-indigo-600">{error}</p>}
 
-      {/* Notes List */}
       <div className="grid sm:grid-cols-2 gap-6">
         {notes.map((note) => (
           <NoteCard
